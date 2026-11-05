@@ -3078,9 +3078,12 @@ char *relative_url_gently(const char *remote_url, const char *url,
 			url += 3;
 			chopped = chop_last_dir(&remoteurl, is_relative);
 			if (chopped < 0) {
+				char *anon = transport_anonymize_url(remote_url);
+
 				strbuf_addf(err,
 					    _("cannot strip one component off url '%s'"),
-					    remoteurl);
+					    anon);
+				free(anon);
 				free(remoteurl);
 				strbuf_release(&sb);
 				return NULL;
