@@ -875,6 +875,13 @@ EOF
 	test_must_be_empty err
 '
 
+test_expect_success 'blank lines are not patterns' '
+	mkdir blank-dir &&
+	printf "\r\n   \n   \r\n" >blank-ignore &&
+	test_expect_code 1 git -c core.excludesfile=blank-ignore check-ignore blank-dir/ >actual &&
+	test_must_be_empty actual
+'
+
 test_expect_success !MINGW 'quoting allows trailing whitespace' '
 	rm -rf whitespace &&
 	mkdir whitespace &&

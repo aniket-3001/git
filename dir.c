@@ -1249,7 +1249,8 @@ int add_patterns_from_buffer(char *buf, size_t size,
 			if (entry != buf + i && entry[0] != '#') {
 				buf[i - (i && buf[i-1] == '\r')] = 0;
 				trim_trailing_spaces(entry);
-				add_pattern(entry, base, baselen, pl, lineno);
+				if (*entry)
+					add_pattern(entry, base, baselen, pl, lineno);
 			}
 			lineno++;
 			entry = buf + i + 1;
