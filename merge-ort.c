@@ -4632,7 +4632,7 @@ static int checkout(struct merge_options *opt,
 	unpack_opts.quiet = 0; /* FIXME: sequencer might want quiet? */
 	unpack_opts.verbose_update = (opt->verbosity > 2);
 	unpack_opts.fn = twoway_merge;
-	unpack_opts.preserve_ignored = 0; /* FIXME: !opts->overwrite_ignore */
+	unpack_opts.preserve_ignored = opt->preserve_ignored;
 	if (repo_parse_tree(opt->repo, prev) < 0)
 		return -1;
 	init_tree_desc(&trees[0], &prev->object.oid, prev->buffer, prev->size);

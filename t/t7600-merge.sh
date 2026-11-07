@@ -1216,4 +1216,63 @@ test_expect_success 'merge with no argument defaults to upstream' '
 	)
 '
 
+test_expect_success 'merge --no-overwrite-ignore keeps an ignored file in the way' '
+	test_when_finished "rm -rf ignored" &&
+	git init ignored &&
+	(
+		cd ignored &&
+		echo secret >.gitignore &&
+		git add .gitignore &&
+		test_tick &&
+		git commit -m base &&
+		git checkout -b side &&
+		echo side >secret &&
+		git add -f secret &&
+		test_tick &&
+		git commit -m side &&
+		git checkout - &&
+		test_commit other &&
+		echo mine >secret &&
+
+		test_must_fail git merge --no-overwrite-ignore side &&
+		echo mine >expect &&
+		test_cmp expect secret &&
+		test_path_is_missing .git/MERGE_HEAD &&
+
+		git merge --overwrite-ignore side &&
+		echo side >expect &&
+		test_cmp expect secret
+	)
+'
+
+test_expect_success 'merge --no-overwrite-ignore with a directory rename' '
+	test_when_finished "rm -rf ignored" &&
+	git init ignored &&
+	(
+		cd ignored &&
+		echo new/private >.gitignore &&
+		mkdir old &&
+		echo seed >old/seed &&
+		git add .gitignore old/seed &&
+		test_tick &&
+		git commit -m base &&
+		git checkout -b incoming &&
+		git mv old new &&
+		test_tick &&
+		git commit -m "rename old to new" &&
+		git checkout - &&
+		echo committed >old/private &&
+		git add old/private &&
+		test_tick &&
+		git commit -m "add old/private" &&
+		mkdir new &&
+		echo mine >new/private &&
+
+		test_must_fail git merge --no-overwrite-ignore incoming &&
+		echo mine >expect &&
+		test_cmp expect new/private &&
+		test_path_is_missing .git/MERGE_HEAD
+	)
+'
+
 test_done

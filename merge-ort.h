@@ -85,6 +85,7 @@ struct merge_options {
 	unsigned renormalize : 1;
 	unsigned mergeability_only : 1; /* exit early, write fewer objects */
 	unsigned record_conflict_msgs_as_headers : 1;
+	unsigned preserve_ignored : 1; /* do not overwrite ignored files */
 	const char *msg_header_prefix;
 
 	/* internal fields used by the implementation */

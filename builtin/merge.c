@@ -756,7 +756,7 @@ static int read_tree_trivial(struct object_id *common, struct object_id *head,
 	opts.verbose_update = 1;
 	opts.trivial_merges_only = 1;
 	opts.merge = 1;
-	opts.preserve_ignored = 0; /* FIXME: !overwrite_ignore */
+	opts.preserve_ignored = !overwrite_ignore;
 	trees[nr_trees] = repo_parse_tree_indirect(the_repository, common);
 	if (!trees[nr_trees++])
 		return -1;
@@ -812,6 +812,7 @@ static int try_merge_strategy(const char *strategy, struct commit_list *common,
 		}
 
 		init_ui_merge_options(&o, the_repository);
+		o.preserve_ignored = !overwrite_ignore;
 		if (!strcmp(strategy, "subtree"))
 			o.subtree_shift = "";
 
