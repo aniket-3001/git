@@ -127,6 +127,30 @@ test_expect_success 'check --cc --raw with forty trees' '
 	test_grep "^::::::::::::::::::::::::::::::::::::::::[^:]" out
 '
 
+test_expect_success LONG_IS_64BIT 'check --cc with forty parents, two losing the same line' '
+	blob=$(echo file | git hash-object --stdin -w) &&
+	result_tree=$(echo "100644 blob $blob	file" | git mktree) &&
+	parent_trees= &&
+	for i in $(test_seq 1 40)
+	do
+		case $i in
+		2 | 40)
+			extra=common
+			;;
+		*)
+			extra=
+			;;
+		esac &&
+		blob=$(test_write_lines $extra file file$i | git hash-object --stdin -w) &&
+		parent_trees="$parent_trees$(echo "100644 blob $blob	file" | git mktree)$LF" || return 1
+	done &&
+	git diff --cc $result_tree $parent_trees >out &&
+	# Check that the second and the fortieth column mark the line:
+	printf " -%37s-common\n" "" >expect &&
+	grep common out >actual &&
+	test_cmp expect actual
+'
+
 test_expect_success 'setup combined ignore spaces' '
 	git checkout main &&
 	>test &&

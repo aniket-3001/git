@@ -246,7 +246,7 @@ static struct lline *coalesce_lines(struct lline *base, int *lenbase,
 	j--;
 	while (i != 0 || j != 0) {
 		if (directions[i][j] == MATCH) {
-			baseend->parent_map |= 1<<parent;
+			baseend->parent_map |= 1UL << parent;
 			baseend = baseend->prev;
 			newend = newend->prev;
 			i--;
