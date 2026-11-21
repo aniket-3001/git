@@ -151,6 +151,42 @@ test_expect_success LONG_IS_64BIT 'check --cc with forty parents, two losing the
 	test_cmp expect actual
 '
 
+test_expect_success 'setup for --cc with many parents' '
+	blob=$(echo file | git hash-object --stdin -w) &&
+	result_tree=$(echo "100644 blob $blob	file" | git mktree) &&
+	many_trees= &&
+	for i in $(test_seq 1 63)
+	do
+		case $i in
+		2 | 40)
+			extra=common
+			;;
+		*)
+			extra=
+			;;
+		esac &&
+		blob=$(test_write_lines $extra file file$i | git hash-object --stdin -w) &&
+		many_trees="$many_trees$(echo "100644 blob $blob	file" | git mktree)$LF" || return 1
+	done
+'
+
+test_expect_success LONG_IS_64BIT 'check --cc with sixty-two parents' '
+	sixty_two_trees=$(echo "$many_trees" | sed -e 62q) &&
+	git diff --cc $result_tree $sixty_two_trees >out &&
+	# Check that the second and the fortieth column mark the line:
+	printf " -%37s-%22scommon\n" "" "" >expect &&
+	grep common out >actual &&
+	test_cmp expect actual
+'
+
+test_expect_success 'refuse --cc patch with sixty-three parents' '
+	git diff --cc --patch-with-raw $result_tree $many_trees >out 2>err &&
+	test_grep "cannot show a combined diff patch with more than [0-9]* parents" err &&
+	# The raw output has a colon for each parent and is still shown:
+	test_grep "^:\{63\}[^:]" out &&
+	test_grep ! "^diff --cc" out
+'
+
 test_expect_success 'setup combined ignore spaces' '
 	git checkout main &&
 	>test &&

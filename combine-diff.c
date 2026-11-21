@@ -136,6 +136,12 @@ struct sline {
 	unsigned long *p_lno;
 };
 
+/*
+ * The masks used to show a patch hold a bit for each parent, followed by
+ * the two marker bits described above.
+ */
+#define MAX_PATCH_PARENTS ((int)bitsizeof(unsigned long) - 2)
+
 static int match_string_spaces(const char *line1, int len1,
 			       const char *line2, int len2,
 			       long flags)
@@ -1491,6 +1497,7 @@ void diff_tree_combined(const struct object_id *oid,
 	struct combine_diff_path *p, *paths;
 	int i, num_paths, needsep, show_log_first, num_parent = parents->nr;
 	int need_generic_pathscan;
+	int show_patch;
 
 	if (opt->ignore_regex_nr)
 		die("combined diff and '%s' cannot be used together",
@@ -1513,6 +1520,13 @@ void diff_tree_combined(const struct object_id *oid,
 		    !commit_format_is_empty(rev->commit_format))
 			printf("%s%c", diff_line_prefix(opt),
 			       opt->line_termination);
+	}
+
+	show_patch = opt->output_format & DIFF_FORMAT_PATCH;
+	if (show_patch && num_parent > MAX_PATCH_PARENTS) {
+		error(_("cannot show a combined diff patch with more than %d parents"),
+		      MAX_PATCH_PARENTS);
+		show_patch = 0;
 	}
 
 	diffopts = *opt;
@@ -1616,7 +1630,7 @@ void diff_tree_combined(const struct object_id *oid,
 		else if (opt->output_format & DIFF_FORMAT_CALLBACK)
 			handle_combined_callback(opt, paths, num_parent, num_paths);
 
-		if (opt->output_format & DIFF_FORMAT_PATCH) {
+		if (show_patch) {
 			if (needsep)
 				printf("%s%c", diff_line_prefix(opt),
 				       opt->line_termination);
